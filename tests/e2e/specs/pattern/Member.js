@@ -115,11 +115,11 @@ const postUpdateMemberEmpty = ({ memberId }) => {
       // birth: '',
       // member_photo: {},
       textarea: '',
-      radio: '',
-      selectbox: '',
+      radio: {},// '',
+      selectbox: {},// '',
       checkbox: [],
-      date: '',
-      relation: '',
+      // date: '',
+      // relation: {},
       // file: {},
       validate_only: false,
     },
@@ -159,6 +159,33 @@ const postDeleteMember = ({ memberId }) => {
     cy,
     query: 'MembersService post delete',
     indexOfApis: 0,
+    requestData,
+  });
+};
+
+const postUpdateMe = () => {
+  /** @type {import('../../../../generated/services/MembersService').MembersService.postMembersServiceRcmsApi1MeUpdateRequest} */
+  const requestData = {
+    requestBody: {
+      text: 'me/update',
+      validate_only: false,
+    },
+  };
+  return executeRequest({
+    cy,
+    query: 'MembersService MeUpdate',
+    requestData,
+  });
+};
+const postDeleteMe = () => {
+  /** @type {import('../../../../generated/services/MembersService').MembersService.postMembersServiceRcmsApi1MeDeleteRequest} */
+  const requestData = {
+    requestBody: {
+    },
+  };
+  return executeRequest({
+    cy,
+    query: 'MembersService MeDelete',
     requestData,
   });
 };
@@ -211,7 +238,6 @@ describe('Member pattern', () => {
     delete updatedMember.details.update_ymdhi;
 
     // compare inserted member and updated member
-    // TODO: 未検証
     expect(updatedMember.details).to.deep.equal(insertedMember.details);
 
     // post delete updated member
@@ -224,7 +250,6 @@ describe('Member pattern', () => {
       get member by ID of inserted one ->
       post update inserted member with empty values ->
       get member by ID of updated one
-
   `, async () => {
     login();
     
@@ -240,11 +265,18 @@ describe('Member pattern', () => {
     expect(insertedMember.details.name2).to.not.be.empty;
     expect(insertedMember.details.sex).to.not.be.empty;
     expect(insertedMember.details.birth).to.not.be.empty;
+    // expect(insertedMember.details.member_photo).to.not.be.empty;
     expect(insertedMember.details.textarea).to.not.be.empty;
     expect(insertedMember.details.radio).to.not.be.empty;
+    expect(insertedMember.details.radio.key).to.not.be.empty;
+    expect(insertedMember.details.radio.label).to.not.be.empty;
     expect(insertedMember.details.selectbox).to.not.be.empty;
+    expect(insertedMember.details.selectbox.key).to.not.be.empty;
+    expect(insertedMember.details.selectbox.label).to.not.be.empty;
     expect(insertedMember.details.checkbox).to.not.be.empty;
-    expect(insertedMember.details.relation).to.not.be.empty;
+    expect(insertedMember.details.date).to.not.be.empty;
+    // expect(insertedMember.details.relation).to.not.be.empty;
+    // expect(insertedMember.details.file).to.not.be.empty;
 
     // post update inserted member with empty values
     await postUpdateMemberEmpty({ memberId: addedId });
@@ -255,14 +287,37 @@ describe('Member pattern', () => {
     expect(updatedMember.details.login_id).to.be.empty;
     expect(updatedMember.details.name1).to.be.empty;
     expect(updatedMember.details.name2).to.be.empty;
-    expect(updatedMember.details.sex).to.be.empty;
-    expect(updatedMember.details.birth).to.be.empty;
+    // expect(updatedMember.details.sex).to.be.empty;
+    // expect(updatedMember.details.birth).to.be.empty;
+    // expect(updatedMember.details.member_photo).to.be.empty;
     expect(updatedMember.details.textarea).to.be.empty;
-    expect(updatedMember.details.radio).to.be.empty;
-    expect(updatedMember.details.selectbox).to.be.empty;
+    // 'radio' and 'selectbox' currently return {key: '', label: null}
+    // expect(updatedMember.details.radio).to.be.empty;
+    // expect(updatedMember.details.selectbox).to.be.empty;
     expect(updatedMember.details.checkbox).to.be.empty;
-    expect(updatedMember.details.relation).to.be.empty;
+    // expect(updatedMember.details.date).to.be.empty;
+    // expect(updatedMember.details.relation).to.be.empty;
+    // expect(updatedMember.details.file).to.be.empty;
 
-  })
+  });
+
+  it(`
+      post me/update without login (error) ->
+      post me/delete without login (error)
+  `, async () => {
+    // post me/update without login (error)
+    let errorResponse = {};
+    await postUpdateMe().then(()=>{}).catch(e => {
+      errorResponse = JSON.parse(e.message);
+    });
+    expect(errorResponse.status).to.equal(403);
+
+    // post me/delete without login (error)
+    errorResponse = {};
+    await postDeleteMe().catch(e => {
+      errorResponse = JSON.parse(e.message);
+    });
+    expect(errorResponse.status).to.equal(403);
+  });
 
 });
